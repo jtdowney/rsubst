@@ -1,0 +1,5 @@
+---
+source: tests/integration_test.rs
+expression: stdout
+---
+Hello !

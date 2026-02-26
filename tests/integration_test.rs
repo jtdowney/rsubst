@@ -88,6 +88,20 @@ fn test_missing_template_file() {
 }
 
 #[test]
+fn test_missing_variable_silent_without_strict() {
+    let dir = tempdir().unwrap();
+    let template_path = dir.path().join("template.j2");
+
+    fs::write(&template_path, "Hello {{NAME}}!").unwrap();
+
+    let output = cargo_run().arg(&template_path).output().unwrap();
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    insta::assert_snapshot!(stdout);
+}
+
+#[test]
 fn test_strict_errors_on_missing_variable() {
     let dir = tempdir().unwrap();
     let template_path = dir.path().join("template.j2");
