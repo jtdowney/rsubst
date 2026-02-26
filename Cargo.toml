@@ -22,6 +22,8 @@ strip = true
 
 [dependencies]
 minijinja = "2"
+pico-args = "0.5"
 
 [dev-dependencies]
+insta = "1"
 tempfile = "3"

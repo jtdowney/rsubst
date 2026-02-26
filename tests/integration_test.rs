@@ -3,6 +3,12 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 use tempfile::tempdir;
 
+fn cargo_run() -> Command {
+    let mut cmd = Command::new("cargo");
+    cmd.arg("run").arg("--");
+    cmd
+}
+
 #[test]
 fn test_simple_output() {
     let dir = tempdir().unwrap();
@@ -10,10 +16,8 @@ fn test_simple_output() {
 
     fs::write(&template_path, "Hello {{NAME}}!").unwrap();
 
-    let output = Command::new("cargo")
-        .arg("run")
-        .arg("--")
-        .arg(template_path)
+    let output = cargo_run()
+        .arg(&template_path)
         .env("NAME", "World")
         .output()
         .unwrap();
@@ -38,10 +42,8 @@ fn test_filters() {
     )
     .unwrap();
 
-    let output = Command::new("cargo")
-        .arg("run")
-        .arg("--")
-        .arg(template_path)
+    let output = cargo_run()
+        .arg(&template_path)
         .env("ITEMS", "a,b,c")
         .output()
         .unwrap();
@@ -52,9 +54,7 @@ fn test_filters() {
 
 #[test]
 fn test_stdin_input() {
-    let mut child = Command::new("cargo")
-        .arg("run")
-        .arg("--")
+    let mut child = cargo_run()
         .env("NAME", "World")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -71,14 +71,57 @@ fn test_stdin_input() {
 
 #[test]
 fn test_missing_template_file() {
-    let output = Command::new("cargo")
-        .arg("run")
-        .arg("--")
-        .arg("nonexistent.j2")
+    let output = cargo_run().arg("nonexistent.j2").output().unwrap();
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    assert!(stderr.contains("Failed to read template file"));
+}
+
+#[test]
+fn test_strict_errors_on_missing_variable() {
+    let dir = tempdir().unwrap();
+    let template_path = dir.path().join("template.j2");
+
+    fs::write(&template_path, "Hello {{NAME}}!").unwrap();
+
+    let output = cargo_run()
+        .arg("--strict")
+        .arg(&template_path)
         .output()
         .unwrap();
 
     assert!(!output.status.success());
     let stderr = String::from_utf8(output.stderr).unwrap();
-    assert!(stderr.contains("Failed to read template file"));
+    assert!(
+        stderr.contains("undefined"),
+        "expected undefined error in: {stderr}"
+    );
+}
+
+#[test]
+fn test_strict_succeeds_when_variable_present() {
+    let dir = tempdir().unwrap();
+    let template_path = dir.path().join("template.j2");
+
+    fs::write(&template_path, "Hello {{NAME}}!").unwrap();
+
+    let output = cargo_run()
+        .arg("--strict")
+        .arg(&template_path)
+        .env("NAME", "World")
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    assert_eq!(String::from_utf8(output.stdout).unwrap(), "Hello World!\n");
+}
+
+#[test]
+fn test_help_flag() {
+    let output = cargo_run().arg("--help").output().unwrap();
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    insta::assert_snapshot!(stdout);
 }
