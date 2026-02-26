@@ -16,6 +16,7 @@
 - Conditional logic (`if`, `else`, `elif`)
 - Looping constructs (`for` loops)
 - Access to [built-in filters](https://docs.rs/minijinja/latest/minijinja/filters/index.html)
+- Strict mode to catch missing variables
 - Lightweight and fast execution
 - Built with Rust for efficiency and reliability
 
@@ -65,6 +66,10 @@ exec "$@"
 
 ## Usage
 
+```
+rsubst [OPTIONS] [TEMPLATE_FILE]
+```
+
 Basic usage:
 
 ```shell
@@ -76,6 +81,14 @@ With environment variables:
 ```shell
 export APP_ENV=production
 rsubst output.conf.j2 > output.conf
+```
+
+### Options
+
+By default, missing variables are silently replaced with empty strings. Use `--strict` to make missing variables a rendering error:
+
+```shell
+rsubst --strict config.conf.j2 > config.conf
 ```
 
 ## Examples

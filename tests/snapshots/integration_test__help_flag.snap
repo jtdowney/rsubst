@@ -1,0 +1,16 @@
+---
+source: tests/integration_test.rs
+assertion_line: 126
+expression: stdout
+---
+rsubst - envsubst-like utility with Jinja2 templating
+
+USAGE:
+    rsubst [OPTIONS] [TEMPLATE_FILE]
+
+ARGS:
+    <TEMPLATE_FILE>  Path to template file (reads stdin if omitted)
+
+OPTIONS:
+    --strict   Treat missing variables as errors
+    -h, --help Show this help message
