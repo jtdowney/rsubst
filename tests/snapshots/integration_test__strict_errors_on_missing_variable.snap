@@ -1,0 +1,16 @@
+---
+source: tests/integration_test.rs
+expression: stderr
+---
+
+[thread] panicked at [file]:
+Failed to render template: Error { kind: UndefinedError, name: "template", line: 1 }
+
+---------------------------------- template -----------------------------------
+   1 > Hello {{NAME}}!
+     i         ^^^^ undefined value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+No referenced variables
+-------------------------------------------------------------------------------
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
