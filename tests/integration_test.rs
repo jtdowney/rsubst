@@ -7,13 +7,6 @@ fn cargo_run() -> Command {
     Command::new(env!("CARGO_BIN_EXE_rsubst"))
 }
 
-fn stderr_filters() -> Vec<(&'static str, &'static str)> {
-    vec![
-        (r"thread '.*' \(\d+\)", "[thread]"),
-        (r"src/main\.rs:\d+:\d+", "[file]"),
-    ]
-}
-
 #[test]
 fn test_simple_output() {
     let dir = tempdir().unwrap();
@@ -80,11 +73,7 @@ fn test_missing_template_file() {
 
     assert!(!output.status.success());
     let stderr = String::from_utf8(output.stderr).unwrap();
-    insta::with_settings!({
-        filters => stderr_filters()
-    }, {
-        insta::assert_snapshot!(stderr);
-    });
+    insta::assert_snapshot!(stderr);
 }
 
 #[test]
@@ -116,11 +105,7 @@ fn test_strict_errors_on_missing_variable() {
 
     assert!(!output.status.success());
     let stderr = String::from_utf8(output.stderr).unwrap();
-    insta::with_settings!({
-        filters => stderr_filters()
-    }, {
-        insta::assert_snapshot!(stderr);
-    });
+    insta::assert_snapshot!(stderr);
 }
 
 #[test]

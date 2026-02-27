@@ -2,9 +2,8 @@
 source: tests/integration_test.rs
 expression: stderr
 ---
+error: undefined value (in template:1)
 
-[thread] panicked at [file]:
-Failed to render template: Error { kind: UndefinedError, name: "template", line: 1 }
 
 ---------------------------------- template -----------------------------------
    1 > Hello {{NAME}}!
@@ -12,5 +11,3 @@ Failed to render template: Error { kind: UndefinedError, name: "template", line:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 No referenced variables
 -------------------------------------------------------------------------------
-
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
