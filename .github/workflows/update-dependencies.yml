@@ -28,37 +28,38 @@ jobs:
       - name: Update dependencies
         id: update
         run: |
-          echo "## Dependency Updates" > update-summary.md
-          echo "" >> update-summary.md
+          SUMMARY="$RUNNER_TEMP/update-summary.md"
+          echo "## Dependency Updates" > "$SUMMARY"
+          echo "" >> "$SUMMARY"
 
-          # Run cargo update and capture output
-          if cargo update 2>&1 | tee update-output.txt; then
-            echo "✅ Dependencies updated successfully" >> update-summary.md
+          if UPDATE_OUTPUT=$(cargo update 2>&1); then
+            echo "✅ Dependencies updated successfully" >> "$SUMMARY"
           else
-            echo "⚠️ Some updates may have failed" >> update-summary.md
+            echo "⚠️ Some updates may have failed" >> "$SUMMARY"
           fi
 
-          echo "" >> update-summary.md
-          echo "### Changes" >> update-summary.md
-          echo '```' >> update-summary.md
-          cat update-output.txt >> update-summary.md
-          echo '```' >> update-summary.md
+          echo "" >> "$SUMMARY"
+          echo "### Changes" >> "$SUMMARY"
+          echo '```' >> "$SUMMARY"
+          echo "$UPDATE_OUTPUT" >> "$SUMMARY"
+          echo '```' >> "$SUMMARY"
       - name: Run security audit
         id: audit
         continue-on-error: true
         run: |
-          echo "" >> update-summary.md
-          echo "## Security Audit" >> update-summary.md
-          echo "" >> update-summary.md
+          SUMMARY="$RUNNER_TEMP/update-summary.md"
+          echo "" >> "$SUMMARY"
+          echo "## Security Audit" >> "$SUMMARY"
+          echo "" >> "$SUMMARY"
 
-          if cargo audit 2>&1 | tee audit-output.txt; then
-            echo "✅ No known vulnerabilities detected" >> update-summary.md
+          if AUDIT_OUTPUT=$(cargo audit 2>&1); then
+            echo "✅ No known vulnerabilities detected" >> "$SUMMARY"
           else
-            echo "⚠️ Security vulnerabilities found - review required" >> update-summary.md
-            echo "" >> update-summary.md
-            echo '```' >> update-summary.md
-            cat audit-output.txt >> update-summary.md
-            echo '```' >> update-summary.md
+            echo "⚠️ Security vulnerabilities found - review required" >> "$SUMMARY"
+            echo "" >> "$SUMMARY"
+            echo '```' >> "$SUMMARY"
+            echo "$AUDIT_OUTPUT" >> "$SUMMARY"
+            echo '```' >> "$SUMMARY"
           fi
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
@@ -68,5 +69,5 @@ jobs:
           delete-branch: true
           commit-message: "chore: update dependencies"
           title: "chore: update dependencies"
-          body-path: update-summary.md
+          body-path: ${{ runner.temp }}/update-summary.md
           labels: dependencies
