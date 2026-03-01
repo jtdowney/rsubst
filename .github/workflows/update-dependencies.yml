@@ -1,0 +1,72 @@
+name: Update Dependencies
+
+on:
+  schedule:
+    - cron: "0 10 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  CARGO_TERM_COLOR: never
+
+jobs:
+  update-dependencies:
+    name: Update Rust Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - name: Setup Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
+      - name: Update dependencies
+        id: update
+        run: |
+          echo "## Dependency Updates" > update-summary.md
+          echo "" >> update-summary.md
+
+          # Run cargo update and capture output
+          if cargo update 2>&1 | tee update-output.txt; then
+            echo "✅ Dependencies updated successfully" >> update-summary.md
+          else
+            echo "⚠️ Some updates may have failed" >> update-summary.md
+          fi
+
+          echo "" >> update-summary.md
+          echo "### Changes" >> update-summary.md
+          echo '```' >> update-summary.md
+          cat update-output.txt >> update-summary.md
+          echo '```' >> update-summary.md
+      - name: Run security audit
+        id: audit
+        continue-on-error: true
+        run: |
+          echo "" >> update-summary.md
+          echo "## Security Audit" >> update-summary.md
+          echo "" >> update-summary.md
+
+          if cargo audit 2>&1 | tee audit-output.txt; then
+            echo "✅ No known vulnerabilities detected" >> update-summary.md
+          else
+            echo "⚠️ Security vulnerabilities found - review required" >> update-summary.md
+            echo "" >> update-summary.md
+            echo '```' >> update-summary.md
+            cat audit-output.txt >> update-summary.md
+            echo '```' >> update-summary.md
+          fi
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: chore/update-dependencies
+          delete-branch: true
+          commit-message: "chore: update dependencies"
+          title: "chore: update dependencies"
+          body-path: update-summary.md
+          labels: dependencies
